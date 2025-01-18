@@ -2,12 +2,15 @@ from ultralytics import YOLO
 import cv2
 import math
 
+# Set this to your camera's number
+video_capture_device = 0
+
 # setup webcam
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(video_capture_device)
 cap.set(3, 640)
 cap.set(4, 480)
 
-model = YOLO("../models/yolo11n.pt")
+model = YOLO("../../models/yolo11n.pt")
 
 # object classes for showing names in display
 classNames = ["person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck", "boat",
