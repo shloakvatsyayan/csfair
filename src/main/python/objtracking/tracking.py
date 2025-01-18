@@ -12,8 +12,8 @@ YOLO_CLASS_NAMES = ["person", "bicycle", "car", "motorbike", "aeroplane", "bus",
                     "teddy bear", "hair drier", "toothbrush"
                     ]
 
-
 YOLO_CLASS_IDX = {name: i for i, name in enumerate(YOLO_CLASS_NAMES)}
+
 
 class FrameProcessor:
     def __init__(self, obj_class_name, io_threshold_value=0.3):
@@ -37,7 +37,7 @@ class FrameProcessor:
                     best_box_match = box
             if best_box_match and best_iou_score >= self.iou_threshold_value:
                 self.current_tracked_box = best_box_match
-                box_updated(self.obj_class_name, "")
+                #box_updated(self.obj_class_name, "")
             else:
                 print("Lost track (no matching box over IOU threshold).")
                 self.current_tracked_box = None
@@ -51,12 +51,12 @@ class FrameProcessor:
                     self.current_tracked_box = (box_x1, box_y1, box_x2, box_y2)
                     self.is_person_selected = True
                     print("Selected new person for tracking:", self.current_tracked_box)
-                    tracking_started(self.obj_class_name, "", "", "")
+                    #tracking_started(self.obj_class_name, "", "", "")
                     return
             self.current_tracked_box = None
             self.is_person_selected = False
             print("No person clicked. Tracking disabled.")
-            tracking_stopped(self.obj_class_name, "")
+            #tracking_stopped(self.obj_class_name, "")
 
     def process_frame(self, frame, model):
         current_frame_boxes = extract_frame_boxes(model, frame, self.obj_class_name)
@@ -81,6 +81,7 @@ def calculate_iou(bounding_box_a, bounding_box_b):
     area_b = (bounding_box_b[2] - bounding_box_b[0]) * (bounding_box_b[3] - bounding_box_b[1])
     return intersection_area / (area_a + area_b - intersection_area + 1e-6)
 
+
 def get_class_idx(name):
     if name in YOLO_CLASS_IDX:
         return YOLO_CLASS_IDX[name]
@@ -97,6 +98,7 @@ def extract_frame_boxes(model, frame, class_to_track):
                 current_frame_boxes.append((x1, y1, x2, y2))
     return current_frame_boxes
 
+
 def show_boxes(current_frame_boxes, is_person_selected, current_tracked_box, frame):
     for (box_x1, box_y1, box_x2, box_y2) in current_frame_boxes:
         rectangle_color = (255, 0, 255)
@@ -105,6 +107,7 @@ def show_boxes(current_frame_boxes, is_person_selected, current_tracked_box, fra
             rectangle_color = (0, 255, 0)
             rectangle_thickness = 3
         cv2.rectangle(frame, (box_x1, box_y1), (box_x2, box_y2), rectangle_color, rectangle_thickness)
+
 
 def tracking_started(obj_class_name, bounding_box, mouse_x, moused_y):
     """
