@@ -7,7 +7,7 @@ cap = cv2.VideoCapture(0)
 cap.set(3, 640)
 cap.set(4, 480)
 
-model = YOLO("yolo11n.pt")
+model = YOLO("../models/yolo11n.pt")
 
 # object classes for showing names in display
 classNames = ["person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck", "boat",
