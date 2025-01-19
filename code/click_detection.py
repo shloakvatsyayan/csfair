@@ -7,7 +7,6 @@ from ultralytics import YOLO
 import objtracking.tracking as tracking
 
 class_to_track = "person"
-turn_detection = False
 model = YOLO("../models/yolo11n.pt")
 model.to("cuda")  # comment this line out if not using an nvidia gpu
 
@@ -29,7 +28,7 @@ while True:
         if not ret:
             break
 
-        frame_processor.process_frame(frame=frame, model=model, print_turn_detection=turn_detection)
+        frame_processor.process_frame(frame=frame, model=model)
 
         cv2.imshow("Webcam", frame)
         key_pressed = cv2.waitKey(1)
