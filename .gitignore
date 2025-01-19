@@ -1,2 +1,6 @@
 models/*
 !models/yolo11n.pt
+robot_testing/
+__pycache__/
+*.pyc
+.venv/
