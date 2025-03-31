@@ -1,21 +1,22 @@
-"""
-Click on a person to keep tracking that person until they walk off camera.
-Click on a different person to start tracking them instead, or click anywhere else (not a person) to stop tracking somone.
-"""
 import cv2
 from ultralytics import YOLO
 import objtracking.tracking as tracking
+from comms import SocketClient
 
 class_to_track = "person"
-model = YOLO("../models/yolo11n.pt")
+model = YOLO("models/yolo11n.pt")
 model.to("cuda")  # comment this line out if not using an nvidia gpu
 
 print("Starting video capture, takes about 9 - 11 seconds to start")
-camera_stream = cv2.VideoCapture(0)
+camera_stream = cv2.VideoCapture(1)
 camera_stream.set(cv2.CAP_PROP_FRAME_WIDTH, 1200)
 camera_stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 1000)
 
-frame_processor = tracking.FrameProcessor(class_to_track)
+# Create a single client connection for the entire run.
+client = SocketClient()
+
+# Pass the client to the FrameProcessor.
+frame_processor = tracking.FrameProcessor(class_to_track, socket_client=client)
 
 cv2.namedWindow("Webcam")
 cv2.setMouseCallback("Webcam", frame_processor.handle_mouse_click)
@@ -39,3 +40,6 @@ while True:
 
 camera_stream.release()
 cv2.destroyAllWindows()
+
+# Cleanly close the socket connection when done.
+client.close()
