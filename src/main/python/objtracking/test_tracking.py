@@ -1,19 +1,16 @@
 import cv2
-import time
-import threading
 
-YOLO_CLASS_NAMES = [
-    "person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck", "boat",
-    "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat",
-    "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella",
-    "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard", "sports ball",
-    "kite", "baseball bat", "baseball glove", "skateboard", "surfboard", "tennis racket",
-    "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple",
-    "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair",
-    "sofa", "pottedplant", "bed", "diningtable", "toilet", "tvmonitor", "laptop", "mouse",
-    "remote", "keyboard", "cell phone", "microwave", "oven", "toaster", "sink", "refrigerator",
-    "book", "clock", "vase", "scissors", "teddy bear", "hair drier", "toothbrush"
-]
+YOLO_CLASS_NAMES = ["person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck", "boat",
+                    "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat",
+                    "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella",
+                    "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard", "sports ball", "kite", "baseball bat",
+                    "baseball glove", "skateboard", "surfboard", "tennis racket", "bottle", "wine glass", "cup",
+                    "fork", "knife", "spoon", "bowl", "banana", "apple", "sandwich", "orange", "broccoli",
+                    "carrot", "hot dog", "pizza", "donut", "cake", "chair", "sofa", "pottedplant", "bed",
+                    "diningtable", "toilet", "tvmonitor", "laptop", "mouse", "remote", "keyboard", "cell phone",
+                    "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors",
+                    "teddy bear", "hair drier", "toothbrush"
+                    ]
 
 direction_definitions = ["right", "left"]
 
@@ -21,14 +18,13 @@ YOLO_CLASS_IDX = {name: i for i, name in enumerate(YOLO_CLASS_NAMES)}
 
 
 class FrameProcessor:
-    def __init__(self, obj_class_name, socket_client, io_threshold_value=0.3):
+    def __init__(self, obj_class_name, io_threshold_value=0.3):
         self.obj_class_name = obj_class_name
         self.iou_threshold_value = io_threshold_value
         self.current_tracked_box = None
         self.is_person_selected = False
         self.current_frame_boxes = []
-        # Pass the socket_client to TrackingHandler.
-        self.tracking_handler = TrackingHandler(socket_client)
+        self.tracking_handler = TrackingHandler()
 
     def set_current_frame_boxes(self, current_frame_boxes):
         self.current_frame_boxes = current_frame_boxes
@@ -50,6 +46,7 @@ class FrameProcessor:
                 self.current_tracked_box = None
                 self.is_person_selected = False
 
+    # move to object-oriented when time
     def handle_mouse_click(self, event, mouse_x, mouse_y, flags, param):
         if event == cv2.EVENT_LBUTTONDOWN:
             for (box_x1, box_y1, box_x2, box_y2) in self.current_frame_boxes:
@@ -71,11 +68,11 @@ class FrameProcessor:
         # track person
         self.track_person()
 
-        # create boxes around detected people
+        # create boxes around ppl
         self.show_boxes(frame)
 
-        # Offload command sending to a separate thread
-        self.tracking_handler.turn_detection(self.is_person_selected, self.current_tracked_box, frame, print_output=True)
+        self.tracking_handler.turn_detection(self.is_person_selected, self.current_tracked_box, frame=frame,
+                                             print_output=True)
 
     def show_boxes(self, frame):
         for (box_x1, box_y1, box_x2, box_y2) in self.current_frame_boxes:
@@ -86,6 +83,7 @@ class FrameProcessor:
                 rectangle_color = (0, 255, 0)
                 rectangle_thickness = 3
             cv2.rectangle(frame, (box_x1, box_y1), (box_x2, box_y2), rectangle_color, rectangle_thickness)
+
 
 def calculate_iou(bounding_box_a, bounding_box_b):
     xA = max(bounding_box_a[0], bounding_box_b[0])
@@ -118,20 +116,36 @@ def extract_frame_boxes(model, frame, class_to_track):
 
 
 class TrackingHandler:
-    def __init__(self, socket_client):
-        self.client = socket_client
-        self.last_command_time = 0.0  # Track when the last command was sent
-
     def tracking_started(self, obj_class_name, bounding_box, mouse_x, moused_y):
-        # Optionally log or handle when tracking starts.
+        """
+        Must be called exactly once when you start tracking a new object
+        :param obj_class_name:
+        :param bounding_box:
+        :param mouse_x:
+        :param moused_y:
+        :return:
+        """
+        # print(f"New person selected.")
         pass
 
     def tracking_stopped(self, obj_class_name, bounding_box):
-        # Optionally log or handle when tracking stops.
+        """
+        Must be called when a currently tracked object is no longer getting tracked
+        :param obj_class_name:
+        :param bounding_box:
+        :return:
+        """
+        # print(f"Person deselected.")
         pass
 
     def box_updated(self, obj_class_name, bounding_box):
-        # Optionally log or handle updates.
+        """
+        Must be called when the bounding box of the tracked object has been updated
+        :param obj_class_name:
+        :param bounding_box:
+        :return:
+        """
+        # print(f"Person updated.")
         pass
 
     def turn_detection(self, is_person_selected, current_tracked_box, frame, print_output=False):
@@ -139,31 +153,9 @@ class TrackingHandler:
             tracked_x1, tracked_y1, tracked_x2, tracked_y2 = current_tracked_box
             person_center_x = (tracked_x1 + tracked_x2) // 2
             frame_center_x = frame.shape[1] // 2
-
-            # Calculate the error between the person center and frame center.
-            error = person_center_x - frame_center_x
-
-            # Gain factor to convert pixel difference to command value.
-            gain = 0.05
-            angular_speed = int(error * gain)
-
-            # Ensure a minimum command magnitude if error is nonzero.
-            if angular_speed != 0 and abs(angular_speed) < 10:
-                angular_speed = 10 if angular_speed > 0 else -10
-
-            command = f"m1 1000 {angular_speed*-1}"
-
-            # Throttle command sending: only send if 0.2s has passed since the last command.
-            current_time = time.time()
-            if current_time - self.last_command_time >= 0.2:
-                self.last_command_time = current_time
-                threading.Thread(target=self.send_command_async, args=(command, print_output), daemon=True).start()
-
-    def send_command_async(self, command, print_output):
-        start_time = time.time()
-        response = self.client.send(command)
-        end_time = time.time()
-        delta = end_time - start_time
-        print(f"Time: {delta:.2f}s")
-        if print_output:
-            print(response)
+            if person_center_x > frame_center_x:
+                direction_index = 0
+            else:
+                direction_index = 1
+            if print_output:
+                print(direction_definitions[direction_index])

@@ -27,10 +27,19 @@ def cmd_motor1(cmd, data):
     return str(speed) + ", " + str(angle)
 
 def cmd_motor2(cmd, data):
-    value = int(data)
-    print("Received motor 2 ", value)
-    #motor_B.run_time(value, 3000, then=Stop.HOLD, wait=True)
-    return value
+    values = data.split()
+    if len(values) != 2:
+        print("Invalid data for motor 2")
+        return "R:400"
+    try:
+        speed = int(values[0])
+        angle = int(values[1])
+    except ValueError:
+        print("Invalid data for motor 2")
+        return "R:400"
+    print("Received motor 2 with:\nSpeed: ", speed, "\nAngle: ", angle)
+    motor_B.run_angle(speed, angle, then=Stop.HOLD, wait=True)
+    return str(speed) + ", " + str(angle)
 
 
 
