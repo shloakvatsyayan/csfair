@@ -1,6 +1,7 @@
 #!/usr/bin/env pybricks-micropython
 import socket
 import time
+import sys
 from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import Motor
 from pybricks.parameters import Port, Stop
@@ -158,3 +159,14 @@ def start_server(host='0.0.0.0', port=1234):
 
 # Start the server
 start_server()
+if __name__ == "__main__":
+    # check if the script has a port number as an argument
+    if len(sys.argv) > 1:
+        try:
+            port = int(sys.argv[1])
+        except ValueError:
+            print("Invalid port number, using default port 1234")
+            port = 1234
+    else:
+        port = 1234
+    start_server(host="0.0.0.0",port=port)

@@ -45,7 +45,7 @@ class FaceTrackerPIDController:
         """
         # Calculate the center of the frame
         center_x = frame_w // 2
-        center_y = frame_h // 2
+        center_y = frame_h // 4
 
         # Calculate the error
         error_x = center_x - ((x1 + x2) // 2)

@@ -148,33 +148,7 @@ class TrackingHandler:
         del_x, del_y = self.face_tracker_pid_controller.process(tracked_x1, tracked_y1, tracked_x2, tracked_y2,
                                                               frame_w, frame_h)
         del_y = -del_y  # Invert Y-axis for the robot's perspective
-        self.client.send(f"dc A {del_x}\n")
-        #self.client.send(f"dc B {del_y}\n")
-
-    def _turn_detection(self, is_person_selected, current_tracked_box, frame, print_output=False):
-        if is_person_selected and current_tracked_box:
-            tracked_x1, tracked_y1, tracked_x2, tracked_y2 = current_tracked_box
-            person_center_x = (tracked_x1 + tracked_x2) // 2
-            frame_center_x = frame.shape[1] // 2
-
-            # Calculate the error between the person center and frame center.
-            error = person_center_x - frame_center_x
-
-            # Gain factor to convert pixel difference to command value.
-            gain = 0.05
-            angular_speed = int(error * gain)
-
-            # Ensure a minimum command magnitude if error is nonzero.
-            if angular_speed != 0 and abs(angular_speed) < 10:
-                angular_speed = 10 if angular_speed > 0 else -10
-
-            command = f"m1 1000 {angular_speed*-1}"
-
-            # Throttle command sending: only send if 0.2s has passed since the last command.
-            current_time = time.time()
-            if current_time - self.last_command_time >= 0.2:
-                self.last_command_time = current_time
-                threading.Thread(target=self.send_command_async, args=(command, print_output), daemon=True).start()
+        self.client.send(f"dc {del_x} 0")
 
     def send_command_async(self, command, print_output):
         start_time = time.time()

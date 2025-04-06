@@ -8,11 +8,8 @@ model = YOLO("models/yolo11n.pt")
 model.to("cuda")  # comment this line out if not using an nvidia gpu
 
 print("Starting video capture...")
-GOPRO_CAM = 2
-LAPTOP_CAM = 0
 
-
-CAM = GOPRO_CAM
+CAM = 2
 
 
 camera_stream = cv2.VideoCapture(CAM)
