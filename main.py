@@ -8,9 +8,16 @@ model = YOLO("models/yolo11n.pt")
 model.to("cuda")  # comment this line out if not using an nvidia gpu
 
 print("Starting video capture...")
-camera_stream = cv2.VideoCapture(2)
-camera_stream.set(cv2.CAP_PROP_FRAME_WIDTH, 1200)
-camera_stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 1000)
+GOPRO_CAM = 2
+LAPTOP_CAM = 0
+
+
+CAM = GOPRO_CAM
+
+
+camera_stream = cv2.VideoCapture(CAM)
+#camera_stream.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+#camera_stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
 # Create a single client connection for the entire run.
 client = SocketClient()

@@ -6,12 +6,14 @@ import cv2
 from ultralytics import YOLO
 import objtracking.test_tracking as tracking
 
-class_to_track = "person"
+SPORTS_BALL = "sports ball"
+CAR = "car"
+class_to_track = CAR
 model = YOLO("models/yolo11n.pt")
 model.to("cuda")  # comment this line out if not using an nvidia gpu
 
 print("Starting video capture...")
-camera_stream = cv2.VideoCapture(2)
+camera_stream = cv2.VideoCapture(3)
 #camera_stream.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
 #camera_stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 

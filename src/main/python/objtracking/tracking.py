@@ -1,6 +1,7 @@
 import cv2
 import time
 import threading
+from objtracking.pid import PIDController, FaceTrackerPIDController
 
 YOLO_CLASS_NAMES = [
     "person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck", "boat",
@@ -121,20 +122,36 @@ class TrackingHandler:
     def __init__(self, socket_client):
         self.client = socket_client
         self.last_command_time = 0.0  # Track when the last command was sent
+        x_pid_controller = PIDController(Kp=0.1, Ki=0.01, Kd=0.05)
+        y_pid_controller = PIDController(Kp=0.05, Ki=0.01, Kd=0.05)
+        self.face_tracker_pid_controller = FaceTrackerPIDController(x_pid_controller, y_pid_controller, min_error=10)
 
     def tracking_started(self, obj_class_name, bounding_box, mouse_x, moused_y):
         # Optionally log or handle when tracking starts.
         pass
 
     def tracking_stopped(self, obj_class_name, bounding_box):
-        # Optionally log or handle when tracking stops.
         pass
 
     def box_updated(self, obj_class_name, bounding_box):
-        # Optionally log or handle updates.
+        # Optionally log or handle updates.70
+
         pass
 
     def turn_detection(self, is_person_selected, current_tracked_box, frame, print_output=False):
+        if not (is_person_selected and current_tracked_box):
+            self.client.send("es all")
+            return
+        tracked_x1, tracked_y1, tracked_x2, tracked_y2 = current_tracked_box
+        frame_w = frame.shape[1]
+        frame_h = frame.shape[0]
+        del_x, del_y = self.face_tracker_pid_controller.process(tracked_x1, tracked_y1, tracked_x2, tracked_y2,
+                                                              frame_w, frame_h)
+        del_y = -del_y  # Invert Y-axis for the robot's perspective
+        self.client.send(f"dc A {del_x}\n")
+        #self.client.send(f"dc B {del_y}\n")
+
+    def _turn_detection(self, is_person_selected, current_tracked_box, frame, print_output=False):
         if is_person_selected and current_tracked_box:
             tracked_x1, tracked_y1, tracked_x2, tracked_y2 = current_tracked_box
             person_center_x = (tracked_x1 + tracked_x2) // 2
