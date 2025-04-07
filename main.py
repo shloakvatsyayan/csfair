@@ -5,7 +5,7 @@ from comms import SocketClient
 
 class_to_track = "person"
 model = YOLO("models/yolo11n.pt")
-model.to("cuda")  # comment this line out if not using an nvidia gpu
+model.to("cuda")
 
 print("Starting video capture...")
 
@@ -13,8 +13,8 @@ CAM = 2
 
 
 camera_stream = cv2.VideoCapture(CAM)
-#camera_stream.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-#camera_stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+camera_stream.set(cv2.CAP_PROP_FRAME_WIDTH, 800)
+camera_stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
 
 # Create a single client connection for the entire run.
 client = SocketClient()

@@ -25,10 +25,11 @@ class FaceTrackerPIDController:
     OUTPUT_MIN = -100
     OUTPUT_MAX = 100
 
-    def __init__(self,   x_pid_controller, y_pid_controller, min_error=10):
+    def __init__(self, x_pid_controller, y_pid_controller, min_x_error=10, min_y_error=20):
         self.x_pid_controller = x_pid_controller
         self.y_pid_controller = y_pid_controller
-        self.min_error = min_error
+        self.min_x_error = min_x_error
+        self.min_y_error = min_y_error
         self.last_time = time.time()
 
 
@@ -45,11 +46,12 @@ class FaceTrackerPIDController:
         """
         # Calculate the center of the frame
         center_x = frame_w // 2
-        center_y = frame_h // 4
+        center_y = frame_h // 2
 
         # Calculate the error
         error_x = center_x - ((x1 + x2) // 2)
-        error_y = center_y - ((y1 + y2) // 2)
+        error_y = center_y - ((y1 + y2)*.5 // 2)
+
 
         # Calculate the time difference
         current_time = time.time()
@@ -64,8 +66,8 @@ class FaceTrackerPIDController:
         output_x = max(self.OUTPUT_MIN, min(self.OUTPUT_MAX, output_x))
         output_y = max(self.OUTPUT_MIN, min(self.OUTPUT_MAX, output_y))
 
-        output_x = int(output_x) if abs(output_x) > self.min_error else 0
-        output_y = int(output_y) if abs(output_y) > self.min_error else 0
+        output_x = int(output_x) if abs(output_x) > self.min_x_error else 0
+        output_y = int(output_y) if abs(output_y) > self.min_y_error else 0
         return output_x, output_y
 
     @staticmethod

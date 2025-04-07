@@ -123,8 +123,9 @@ class TrackingHandler:
         self.client = socket_client
         self.last_command_time = 0.0  # Track when the last command was sent
         x_pid_controller = PIDController(Kp=0.1, Ki=0.01, Kd=0.05)
-        y_pid_controller = PIDController(Kp=0.05, Ki=0.01, Kd=0.05)
-        self.face_tracker_pid_controller = FaceTrackerPIDController(x_pid_controller, y_pid_controller, min_error=10)
+        y_pid_controller = PIDController(Kp=0.05, Ki=0.00, Kd=0.05)
+        self.face_tracker_pid_controller = FaceTrackerPIDController(x_pid_controller, y_pid_controller,
+                                                                    min_x_error=10, min_y_error=25)
 
     def tracking_started(self, obj_class_name, bounding_box, mouse_x, moused_y):
         # Optionally log or handle when tracking starts.
@@ -148,7 +149,7 @@ class TrackingHandler:
         del_x, del_y = self.face_tracker_pid_controller.process(tracked_x1, tracked_y1, tracked_x2, tracked_y2,
                                                               frame_w, frame_h)
         del_y = -del_y  # Invert Y-axis for the robot's perspective
-        self.client.send(f"dc {del_x} 0")
+        self.client.send(f"dc {del_x} {del_y}")
 
     def send_command_async(self, command, print_output):
         start_time = time.time()

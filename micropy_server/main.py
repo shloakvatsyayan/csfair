@@ -1,9 +1,9 @@
 #!/usr/bin/env pybricks-micropython
 import socket
-import time
 import sys
 from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import Motor
+from pybricks.ev3devices import GyroSensor
 from pybricks.parameters import Port, Stop
 
 ev3 = EV3Brick()
@@ -11,6 +11,7 @@ ev3.speaker.beep()
 
 motor_A = Motor(Port.A)
 motor_B = Motor(Port.B)
+gyro = GyroSensor(Port.S1)
 
 def cmd_motor1(cmd, data):
     values = data.split()
@@ -92,11 +93,12 @@ def cmd_dc_motor_stop(cmd, data):
         return "R:400"
 
 
-def cmd_sense_query(cmd, data):
-    print("Received sense query", data)
-    return "42"
+def cmd_tilt_query(cmd, data):
+    angle = gyro.angle()
+    print("Gyro angle: ", angle)
+    return str(angle)
 
-commands = {'m1': cmd_motor1, 'm2': cmd_motor2, "sq":cmd_sense_query, 'dc': cmd_dc_motor, 'es': cmd_dc_motor_stop}
+commands = {'m1': cmd_motor1, 'm2': cmd_motor2, "sq":cmd_tilt_query, 'dc': cmd_dc_motor, 'es': cmd_dc_motor_stop}
 
 
 def process_line(line):
@@ -158,7 +160,6 @@ def start_server(host='0.0.0.0', port=1234):
 
 
 # Start the server
-start_server()
 if __name__ == "__main__":
     # check if the script has a port number as an argument
     if len(sys.argv) > 1:

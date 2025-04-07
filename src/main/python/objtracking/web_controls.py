@@ -113,13 +113,9 @@ if st.button("💣 Terminate EV3 Program"):
     st.error(f"Terminate command sent: {result}")
 st.markdown("</div>", unsafe_allow_html=True)
 
-"""
+
 # --- Sensor Queries ---
 st.header("Sensor Queries")
 
 if st.button("Get Tilt Sensor Value"):
     st.info(send_command("sq tilt"))
-
-if st.button("Get Color Sensor Value"):
-    st.info(send_command("sq color"))
-"""
