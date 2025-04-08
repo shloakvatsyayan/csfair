@@ -70,6 +70,9 @@ if st.button("Send to Motor B"):
     cmd = f"m2 {speed_b} {angle_b}"
     st.success(send_command(cmd))
 
+if st.button("🛑 Reset Motor B"):
+    st.success(send_command("rb 0"))
+
 # --- DC Control ---
 st.header("Direct Duty Cycle Control")
 
@@ -82,6 +85,7 @@ if st.button("Apply DC to Motor A"):
 
 if st.button("🛑 Stop Motor A"):
     st.warning(send_command("es m1"))
+
 
 # --- Motor B DC Control + Stop ---
 st.subheader("Motor B Control")
@@ -119,3 +123,6 @@ st.header("Sensor Queries")
 
 if st.button("Get Tilt Sensor Value"):
     st.info(send_command("sq tilt"))
+
+if st.button("🛑 Reset Gyro"):
+    st.success(send_command("rg 0"))

@@ -5,6 +5,9 @@ from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import Motor
 from pybricks.ev3devices import GyroSensor
 from pybricks.parameters import Port, Stop
+import _thread  # MicroPython's threading support
+
+
 
 ev3 = EV3Brick()
 ev3.speaker.beep()
@@ -92,13 +95,28 @@ def cmd_dc_motor_stop(cmd, data):
         print("Invalid data for DC motor stop")
         return "R:400"
 
+def cmd_motor_b_reset(cmd, data):
+    print("Received motor B reset with:\nData: ", data)
+    duty_limit = int(data.strip())
+    motor_B.run_until_stalled(100, then=Stop.COAST)
+
+
+def cmd_reset_gyro(cmd, data):
+    print("Received gyro reset with:\nData: ", data)
+    angle = int(data.strip())
+    gyro.reset_angle(angle)
+    return str(angle)
+
 
 def cmd_tilt_query(cmd, data):
     angle = gyro.angle()
     print("Gyro angle: ", angle)
     return str(angle)
 
-commands = {'m1': cmd_motor1, 'm2': cmd_motor2, "sq":cmd_tilt_query, 'dc': cmd_dc_motor, 'es': cmd_dc_motor_stop}
+commands = {'m1': cmd_motor1, 'm2': cmd_motor2,
+            "sq":cmd_tilt_query, 'dc': cmd_dc_motor,
+            'es': cmd_dc_motor_stop, 'rb': cmd_motor_b_reset,
+            'rg': cmd_reset_gyro}
 
 
 def process_line(line):
@@ -147,7 +165,7 @@ def start_server(host='0.0.0.0', port=1234):
         while True:
             cl, addr = s.accept()
             print('Client connected from', addr)
-            handle_client(cl)
+            _thread.start_new_thread(handle_client, (cl,))
     except KeyboardInterrupt:
         print("Server stopped by user")
         s.close()

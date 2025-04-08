@@ -2,10 +2,11 @@ import time
 
 class PIDController:
 
-    def __init__(self, Kp=1.2, Ki=0.0, Kd=0.3):
+    def __init__(self, Kp=1.2, Ki=0.0, Kd=0.3, name="PID"):
         self.Kp = Kp
         self.Ki = Ki
         self.Kd = Kd
+        self.name = name
         self.prev_error = 0
         self.integral = 0
         self.last_time = time.time()
@@ -19,6 +20,7 @@ class PIDController:
         derivative = (error - self.prev_error) / dt
         D = self.Kd * derivative
         self.prev_error = error
+        print(f"{self.name}: P={P}, I={I}, D={D}, error={error}, dt={dt}")
         return P + I + D
 
 class FaceTrackerPIDController:
@@ -50,7 +52,7 @@ class FaceTrackerPIDController:
 
         # Calculate the error
         error_x = center_x - ((x1 + x2) // 2)
-        error_y = center_y - ((y1 + y2)*.5 // 2)
+        error_y = center_y - ((y1 + y2) // 2)
 
 
         # Calculate the time difference

@@ -3,6 +3,7 @@ import time
 import threading
 from objtracking.pid import PIDController, FaceTrackerPIDController
 
+
 YOLO_CLASS_NAMES = [
     "person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck", "boat",
     "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat",
@@ -20,6 +21,20 @@ direction_definitions = ["right", "left"]
 
 YOLO_CLASS_IDX = {name: i for i, name in enumerate(YOLO_CLASS_NAMES)}
 
+def read_class_name(frame_processor):
+    while True:
+        class_name = input("Class Name:")
+        class_name = class_name.strip().lower()
+        if class_name in YOLO_CLASS_NAMES:
+            frame_processor.obj_class_name = class_name
+            print(f"Class name set to: {class_name}")
+        else:
+            print(f"Invalid class name. Defaulting to: {frame_processor.obj_class_name}")
+            print("Allowed names:")
+            copy_list = YOLO_CLASS_NAMES.copy()
+            copy_list.sort()
+            for name in copy_list:
+                print(f"-->{name}:")
 
 class FrameProcessor:
     def __init__(self, obj_class_name, socket_client, io_threshold_value=0.3):
@@ -30,6 +45,7 @@ class FrameProcessor:
         self.current_frame_boxes = []
         # Pass the socket_client to TrackingHandler.
         self.tracking_handler = TrackingHandler(socket_client)
+        threading.Thread(target=read_class_name, args=(self,), daemon=True).start()
 
     def set_current_frame_boxes(self, current_frame_boxes):
         self.current_frame_boxes = current_frame_boxes
@@ -122,10 +138,11 @@ class TrackingHandler:
     def __init__(self, socket_client):
         self.client = socket_client
         self.last_command_time = 0.0  # Track when the last command was sent
-        x_pid_controller = PIDController(Kp=0.1, Ki=0.01, Kd=0.05)
+        x_pid_controller = PIDController(Kp=0.1, Ki=0.00, Kd=0.05)
         y_pid_controller = PIDController(Kp=0.05, Ki=0.00, Kd=0.05)
         self.face_tracker_pid_controller = FaceTrackerPIDController(x_pid_controller, y_pid_controller,
-                                                                    min_x_error=10, min_y_error=25)
+                                                                    min_x_error=5, min_y_error=5)
+        self.stopped_all = False
 
     def tracking_started(self, obj_class_name, bounding_box, mouse_x, moused_y):
         # Optionally log or handle when tracking starts.
@@ -140,9 +157,12 @@ class TrackingHandler:
         pass
 
     def turn_detection(self, is_person_selected, current_tracked_box, frame, print_output=False):
-        if not (is_person_selected and current_tracked_box):
-            self.client.send("es all")
+        if not (is_person_selected and current_tracked_box) :
+            if not self.stopped_all :
+                self.client.send("es all")
+                self.stopped_all = True
             return
+        self.stopped_all = False
         tracked_x1, tracked_y1, tracked_x2, tracked_y2 = current_tracked_box
         frame_w = frame.shape[1]
         frame_h = frame.shape[0]

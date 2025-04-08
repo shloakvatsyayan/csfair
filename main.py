@@ -9,7 +9,7 @@ model.to("cuda")
 
 print("Starting video capture...")
 
-CAM = 2
+CAM = 3
 
 
 camera_stream = cv2.VideoCapture(CAM)
